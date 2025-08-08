@@ -3,9 +3,9 @@ Copia de mi publicación en el foro de Bandaancha: -> [POST](https://bandaancha.
 
 # Introducción
 
-El router Genexis Pure ED500, distribuido por Adamo, ejecuta una variante de OpenWrt modificada por Lopsys, con la interfaz web JUCI.
+El router Genexis Pure ED500, distribuido por Adamo, ejecuta una variante de OpenWrt modificada por Iopsys, con la interfaz web JUCI.
 
-El firmware está cerrado, pero tras liarme a palos con el router y casi partirlo por la mitad, es posible obtener acceso root real, privilegios de administrador en la interfaz web y desactivar completamente el backdoor que usa Adamo para acceder remotamente al dispositivo. Con el usuario admin de JUCI podéis obtener vuestra configuración SIP si aún usáis teléfono fijo. Además de configurar OpenVPN y muchas más cosas que vienen, la verdad que no está tan mal
+El firmware está cerrado, pero tras liarme a palos con el router y casi partirlo por la mitad, es posible obtener acceso root real, privilegios de administrador en la interfaz web y desactivar completamente el backdoor que usa Adamo para acceder remotamente al dispositivo. Con el usuario admin de JUCI podéis obtener vuestra configuración SIP si aún usáis teléfono fijo. Además de configurar OpenVPN y muchas más cosas que vienen, la verdad que no está tan mal.
 
 # Fotos
 
