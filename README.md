@@ -2,13 +2,13 @@
 Copia de mi publicación en el foro de Bandaancha: -> [POST](https://bandaancha.eu/foros/tutorial-acceso-root-completo-pure-ed500-1757239)
 
 Este proyecto documenta el proceso de obtención de acceso root completo en el router Genexis Pure ED500 (Adamo), basado en OpenWrt modificado por Iopsys con interfaz JUCI. 
-A través de UART y modificaciones en el arranque (/etc/preinit), se logra persistencia de credenciales, acceso administrativo y eliminación total del backdoor TR-069 (icwmp, icwmpd, icwmp_stund). Se incluye análisis detallado de la gestión de contraseñas vía UCI y estructura interna de usuarios.
+A través de UART y modificaciones en el arranque (/etc/preinit), se logra persistencia de credenciales, acceso administrativo y eliminación total del "backdoor" TR-069 (icwmp, icwmpd, icwmp_stund). Se incluye análisis detallado de la gestión de contraseñas vía UCI y estructura interna de usuarios.
 
 # Introducción
 
 El router Genexis Pure ED500, distribuido por Adamo, ejecuta una variante de OpenWrt modificada por Iopsys, con la interfaz web JUCI.
 
-El firmware está cerrado, pero tras liarme a palos con el router y casi partirlo por la mitad, es posible obtener acceso root real, privilegios de administrador en la interfaz web y desactivar completamente el backdoor que usa Adamo para acceder remotamente al dispositivo. Con el usuario admin de JUCI podéis obtener vuestra configuración SIP si aún usáis teléfono fijo. Además de configurar OpenVPN y muchas más cosas que vienen, la verdad que no está tan mal.
+El firmware está cerrado, pero tras liarme a palos con el router y casi partirlo por la mitad, es posible obtener acceso root real, privilegios de administrador en la interfaz web y desactivar completamente el "backdoor" que usa Adamo para acceder remotamente al dispositivo. Con el usuario admin de JUCI podéis obtener vuestra configuración SIP si aún usáis teléfono fijo. Además de configurar OpenVPN y muchas más cosas que vienen, la verdad que no está tan mal.
 
 # Fotos
 
@@ -82,7 +82,7 @@ Pero la *parte clave* está en el script de init `/etc/init.d/passwords`, que en
 
 Por tanto, si cambias la contraseña de admin y reinicias sin eliminar el campo password del UCI, el sistema volverá a poner la que tenía antes.
 
-# Eliminación del backdoor (TR-069)
+# Eliminación del "backdoor" (TR-069)
 
 Cito de la Wikipedia:
 
