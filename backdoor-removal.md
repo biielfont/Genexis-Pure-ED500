@@ -1,4 +1,5 @@
 < Special thanks to the author: https://github.com/moieric11 >
+
 This script removes various ICE, IUP, and CWMP-related services and files from the system.
 
 **Important**: The changes are **not persistent** after a device reset (good for testing). See the “Making changes persistent” section below.
