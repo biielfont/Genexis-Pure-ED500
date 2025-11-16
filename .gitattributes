@@ -1,3 +1,0 @@
-*.y3 filter=lfs diff=lfs merge=lfs -text
-*.tct filter=lfs diff=lfs merge=lfs -text
-*.txt filter=lfs diff=lfs merge=lfs -text
