@@ -34,7 +34,68 @@ The approach documented here achieves complete user control without requiring fi
 
 The following diagram illustrates the major system components and their relationships within the Genexis Pure ED500 device:
 
+```mermaid
+flowchart TD
+  %% Capa de Hardware
+  subgraph Hardware
+    HW1[MIPS 24kc CPU]
+    HW2[NAND Flash\n17c00000.nand-parts]
+    HW3[UART Interface\nttyLTQ0 @ 115200 baud]
+  end
 
+  %% Bootloader U-Boot
+  subgraph Bootloader
+    BL1[uboot partition\n1MB NAND]
+    BL2[bootargs]
+    BL2a[console=ttyLTQ0,115200]
+    BL2b[root=ubi0:rootfs_0]
+    BL2c[ubi.mtd=ubi,1,30]
+    BL2d[rootfstype=ubifs]
+    BL3[env1 UBI volume\n0x1f000 bytes]
+    BL4[env2 UBI volume\n0x1f000 bytes]
+  end
+
+  %% Sistema de archivos UBIFS
+  subgraph Filesystem
+    FS1[rootfs_0 UBI volume\n0x3a20000 (~58MB)]
+    FS1a[/rom read-only\nFactory defaults]
+    FS2[rootfs_1 UBI volume\n0x3a20000 (~58MB)]
+    FS2a[/overlay writable\nUser modifications]
+    FS3[usr_data UBI volume\n0x22e000 (~2.2MB)]
+  end
+
+  %% Secuencia de arranque
+  subgraph Boot_Sequence
+    BS1[Linux kernel boot]
+    BS2[/etc/preinit\nexec /bin/sh]
+    BS3[/sbin/init\nSystem initialization]
+    BS4[/etc/init.d/passwords\nPassword sync]
+  end
+
+  %% Conexiones
+  HW1 --> BL1
+  HW2 --> BL1
+  HW3 --> BL2a
+
+  BL1 --> BL2
+  BL2 --> BL2a
+  BL2 --> BL2b
+  BL2 --> BL2c
+  BL2 --> BL2d
+  BL1 --> BL3
+  BL1 --> BL4
+
+  BL2b --> FS1
+  FS1 --> FS1a
+  FS2 --> FS2a
+  FS1 --> BS1
+  FS3 --> BS1
+
+  BS1 --> BS2 --> BS3 --> BS4
+
+  %% Redundancia
+  FS1 -.-> FS2
+  ```
 
 **System Architecture: Major Components and File Paths**
 
