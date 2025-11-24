@@ -151,10 +151,6 @@ When connected to WAN with **TR-069** still active, the ISP's ACS server can aut
 
 ## Device Overview
 
-* **Relevant source files**
-
----
-
 ## Purpose and Scope
 
 This page provides a comprehensive overview of the **Genexis Pure ED500** router hardware, firmware architecture, and system components. It introduces the device's hardware platform, software environment, and key subsystems that are explored in detail throughout this wiki.
@@ -759,7 +755,7 @@ The Genexis Pure ED500 software stack is a multi-layered system built on **OpenW
 * **ISP Services:** **TR-069** (`icwmpd`), **ICE**, **IUP** (remote management/backdoor)
 * **Authentication:** **`/etc/init.d/passwords`** script synchronizes UCI with `/etc/shadow`.
 
-## 🚀 Boot Process
+## Boot Process
 
 * **Relevant source files**
 
