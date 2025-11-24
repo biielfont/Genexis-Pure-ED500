@@ -57,11 +57,11 @@ flowchart TD
 
   %% Sistema de archivos UBIFS
   subgraph Filesystem
-    FS1[rootfs_0 UBI volume\n0x3a20000 (~58MB)]
+    FS1[rootfs_0 UBI volume\n0x3a20000 ~58MB]
     FS1a[/rom read-only\nFactory defaults]
-    FS2[rootfs_1 UBI volume\n0x3a20000 (~58MB)]
+    FS2[rootfs_1 UBI volume\n0x3a20000 ~58MB]
     FS2a[/overlay writable\nUser modifications]
-    FS3[usr_data UBI volume\n0x22e000 (~2.2MB)]
+    FS3[usr_data UBI volume\n0x22e000 ~2.2MB]
   end
 
   %% Secuencia de arranque
