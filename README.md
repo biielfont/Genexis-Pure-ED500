@@ -9,7 +9,10 @@ A través de UART y modificaciones en el arranque (/etc/preinit), se logra persi
 
 El router Genexis Pure ED500, distribuido por Adamo, ejecuta una variante de OpenWrt modificada por Iopsys, con la interfaz web JUCI.
 
-El firmware está cerrado, pero tras liarme a palos con el router y casi partirlo por la mitad, es posible obtener acceso root real, privilegios de administrador en la interfaz web y desactivar completamente el "backdoor" que usa Adamo para acceder remotamente al dispositivo. Con el usuario admin de JUCI podéis obtener vuestra configuración SIP si aún usáis teléfono fijo. Además de configurar OpenVPN y muchas más cosas que vienen, la verdad que no está tan mal.
+El firmware es cerrado y carece de documentación oficial, pero tras un análisis exhaustivo del dispositivo fue posible obtener acceso root completo, habilitar privilegios de administrador en la interfaz web y desactivar por completo el “backdoor” utilizado por Adamo para la gestión remota del router.  
+
+Con el usuario **admin** de JUCI es posible acceder a la configuración SIP (para quienes aún utilizan telefonía fija), así como habilitar servicios avanzados como **OpenVPN** y otras funciones adicionales. En definitiva, aunque el sistema viene bastante limitado de fábrica, una vez desbloqueado ofrece un nivel de control y personalización mucho más interesante de lo que cabría esperar.
+
 
 # Fotos
 
@@ -44,15 +47,18 @@ Después, accedí a `/etc/shadow` y `/etc/passwd`, y cambié las contraseñas *r
 
 Todo parecía correcto: los hashes se actualizaban y el sistema aceptaba los nuevos passwords.
 
-Sin embargo, cambiar la contraseña de root o admin en este punto no tiene efecto sobre JUCI, porque aún no se han ejecutado los scripts que configuran el entorno y sincronizan los credenciales.
+Sin embargo, cambiar la contraseña de root o admin en este punto no tenía efecto sobre JUCI, porque el problema no estaba en los scripts de sincronización de contraseñas, sino en la partición que se estaba modificando.
 
-1. El sistema no estaba completamente arrancado. Solamente tenía montado el rootfs, pero muchos scripts de inicialización no se ejecutaban.
-2. No se ejecutaba `/etc/init.d/passwords`, que es el responsable de aplicar las contraseñas desde UCI al sistema real, sincronizarlas y borrarlas del config.
-3. Además, la shell que obtenía con `/bin/sh` era antes de que se montase overlayfs. Es decir: cualquier cambio en */etc* se hacía en RAM o en el sistema squashfs en modo lectura. Al reiniciar, se perdía todo.
+El router trabaja con dos bancos de sistema:
+- `/rom` → contiene los valores de fábrica (solo lectura).
+- `/` → raíz activa que realmente usa el sistema.
+
+Cuando accedía con `/bin/sh` antes de que se montase overlayfs, las contraseñas se cambiaban en `/rom`, pero esa partición no es la que utiliza JUCI. Por eso, aunque los hashes se actualizaban en ese banco, no tenían ningún efecto sobre la autenticación web. Para que las contraseñas persistan y funcionen en JUCI, es necesario modificarlas en la raíz activa (`/`) una vez que el sistema haya terminado de montar overlayfs.
+
 
 # La joya de la corona: Hook `post-/etc/preinit`
 
-JUCI usa las credenciales del sistema Linux. Para que las contraseñas que modifiques funcionen tanto en el sistema como en la web (JUCI), necesitas que el sistema se inicie completamente, pero manteniendo acceso a una shell.
+JUCI usa las credenciales del sistema Linux. Para que las contraseñas que modifiques funcionen tanto en el sistema como en la web (JUCI), necesitas que el sistema se inicie completamente, pero manteniendo acceso a una shell en (`/`) en vez de (`/rom`).
 
 Aquí es donde entra el script que vimos antes en los bootargs por defecto. Editamos `/etc/preinit` y añadimos al final:
 
@@ -73,15 +79,24 @@ Los usuarios que usa Adamo para conectarse remotamente son *admin* y *support*, 
 
 # Estructura de usuarios y autenticación
 
-En `/etc/config/users`* están definidos los usuarios lógicos (_user, support, admin)_ y en `/etc/config/passwords`* se asignan contraseñas por tipo de usuario.
+En `/etc/config/users` están definidos los roles lógicos (**user**, **support**, **admin**). La gestión efectiva de contraseñas no se basa en UCI como fuente de verdad, sino en los hashes de `/etc/shadow`.
 
-Pero la *parte clave* está en el script de init `/etc/init.d/passwords`, que en cada arranque:
+### Comportamiento real de sincronización
 
-1. Lee /etc/config/passwords
-2. Si encuentra una clave definida, la aplica vía passwd
-3. Luego borra esa entrada del UCI (_uci delete passwords.admin.password_), lo que evita que se sobrescriba constantemente.
+- **Cambios vía terminal o web:**  
+  Tanto `passwd admin` ejecutado desde terminal como el cambio de contraseña desde JUCI (que invoca `passwd` en segundo plano) actualizan `/etc/shadow` y permanecen tras reiniciar. No se revierten a una “original” mientras exista un hash válido en la raíz activa.
 
-Por tanto, si cambias la contraseña de admin y reinicias sin eliminar el campo password del UCI, el sistema volverá a poner la que tenía antes.
+- **Script `/etc/init.d/passwords`:**  
+  Su función práctica es inicializar credenciales si faltan.  
+  Si no hay contraseña definida para **user**, **support** o **admin** en `/etc/shadow`, el script toma el hash correspondiente de `/rom/etc/shadow` y lo copia a `/etc/shadow`.  
+  No sobrescribe contraseñas ya existentes ni fuerza valores de UCI sobre `/etc/shadow`.
+
+### Implicación
+
+- **No hay restauración automática desde UCI:**  
+  Cambiar la contraseña de `admin` y reiniciar no revierte el cambio, porque JUCI y el sistema usan el mismo backend (shadow).  
+  La restauración desde `/rom` solo ocurre cuando el hash en la raíz activa está ausente o vacío.
+
 
 # Eliminación del "backdoor" (TR-069)
 
@@ -107,16 +122,19 @@ Para desactivar por completo el acceso remoto es tan fácil como borrarlos (o ca
 
 `mv icwmp icwmp.bak` `mv icwmp_stund icwmp_stund.bak` `mv icwmpd icwmpd.bak`
 
-También he visto un par de referencias a este dominio: *acs.adamo.es*, el cual parece ser un portal de administrador que les permite conectarse a nuestros tan queridísimos routers, espiarnos y bueno, todo eso de las ISPs :)
+De forma adicional, también es posible realizar la desactivación desde la propia interfaz web del router. Accediendo como **admin**, se puede deshabilitar la opción *ACS discover por DHCP* y eliminar tanto los dominios como los usuarios de Adamo configurados en el cliente TR-069. Esta medida complementa la eliminación manual de binarios y asegura que el dispositivo no intente establecer comunicación con el servidor ACS de la operadora.
+
+También aparecen referencias al dominio *acs.adamo.es* (ACS: Auto Configuration Server), que apunta a ser el portal de administración utilizado por la operadora para conectarse a nuestros “adorados” routers. En otras palabras: la puerta de entrada oficial para que puedan curiosear en nuestros equipos, monitorizarnos y aplicar esa gestión remota tan “entrañable” que tanto gusta a las ISPs
 
 # Conclusión
 
-Cerveza fría y mucho coco.
+Actualmente estoy analizando las contraseñas por defecto que aparecen en */etc/shadow*, con el objetivo de comprobar si es posible descifrarlas y facilitar así el acceso directo por SSH sin necesidad de realizar modificaciones adicionales.
 
-Dentro de unos días seguramente adjuntaré un link de un repositorio de GitHub con ficheros de configuración y binarios relevantes. Primero quiero revisar todo y asegurarme de que no haya alguna conexión con los datos de mi router.
+Durante la revisión se ha identificado que los routers de Adamo incluyen un usuario de soporte preconfigurado con credenciales estáticas:  
+**support : "Adamo support rockz!"**  
+Este acceso representa una vulnerabilidad, ya que en caso de que algún dispositivo quede expuesto a Internet, podría ser utilizado para entrar de forma remota con el usuario *support*.
 
-Ahora mismo estoy intentando ver si puedo desencriptar las contraseñas por defecto que vienen en */etc/shadow*, y así podríais conectaros directamente por SSH, ahorrándoos todo este tinglado.
+El servicio SSH se encuentra habilitado por defecto en el puerto **22666**. El único acceso válido corresponde al usuario **root**. Los usuarios impresos en la etiqueta del dispositivo no disponen de directorio *home* ni de una *shell* asignada, lo que impide su utilización para sesiones SSH.
 
-Que sepáis que viene activado por defecto en el puerto *22666*. El único usuario con el que podéis entrar es root; si intentáis con el usuario por defecto que viene en la pegatina, os vais a comer una hostia con la mano abierta, porque no son usuarios con directorios home, así que no permiten el acceso.
 
-Si tenéis alguna duda, escribid por aquí. Iré actualizando el post.
+
