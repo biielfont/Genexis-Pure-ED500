@@ -2,6 +2,11 @@
 Copia de mi publicación en el foro de Bandaancha: -> [POST](https://bandaancha.eu/foros/tutorial-acceso-root-completo-pure-ed500-1757239) <br />
 Enlace archivado en Wayback Machine -> [Wayback](https://web.archive.org/web/20250917144511/https://bandaancha.eu/foros/tutorial-acceso-root-completo-pure-ed500-1757239)
 
+Para acceder a una explicación más completa y detallada, te recomiendo consultar la guía en línea:  
+[![Explorar en DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/biielfont/Genexis-Pure-ED500)  
+
+También puedes revisar el archivo **`extended.md`** para obtener información adicional y ejemplos prácticos.
+
 Este proyecto documenta el proceso de obtención de acceso root completo en el router Genexis Pure ED500 (Adamo), basado en OpenWrt modificado por Iopsys con interfaz JUCI. 
 A través de UART y modificaciones en el arranque (/etc/preinit), se logra persistencia de credenciales, acceso administrativo y eliminación total del "backdoor" TR-069 (icwmp, icwmpd, icwmp_stund). Se incluye análisis detallado de la gestión de contraseñas vía UCI y estructura interna de usuarios.
 
