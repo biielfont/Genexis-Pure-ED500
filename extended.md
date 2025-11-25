@@ -42,7 +42,83 @@ The system operates in distinct layers from **hardware** through to **user inter
 
 ## Critical System Components
 
-The following table maps key system functionality to specific files and components in the codebase:
+The following diagram maps physical hardware components to specific files, binaries, and configuration entries in the codebase:
+
+```mermaid
+flowchart TB
+ subgraph s1["Hardware Layer"]
+        n1["MIPS 24kc CPU"]
+        n2["NAND Flash
+17c00000.nand-parts"]
+        n3["UART Interface
+ttyLTQ0 115200 baud"]
+  end
+ subgraph s2["Filesystem - UBIFS Dual"]
+        n4["rootfs_0 UBI volume 0x3a20000 (~58MB) Primary active bank"]
+        n5["rootfs_1 UBI volume 0x3a20000 (~58MB) Backup/alternate bank"]
+        n6["usr_data UBI volume 0x22e000 (~2.2MB)"]
+        n7["SSH server Port 22666
+root user only"]
+        n8["/overlay writable layer User modifications"]
+  end
+ subgraph s3["Bootloader - U-Boot"]
+        n9["uboot partition
+1MB NAND region"]
+        n10["bootargs variable
+console=ttyLTQ0,115200
+root=ubi0:rootfs_0 ubi.mtd=ubi,0,30
+rootfstype=ubifs"]
+        n11["env1 UBI volume 0x1f000 bytes"]
+        n12["env2 UBI volume 0x1f000 bytes"]
+  end
+ subgraph s4["Boot Sequence"]
+        n13["Linux kernel boot"]
+        n14["/etc/preinit Add: exec /bin/sh"]
+        n15["/sbin/init System initialization"]
+        n22["/etc/init.d/passwords Password sync script"]
+  end
+ subgraph s5["TR-069 System Binaries"]
+        n17["/usr/sbin/icwmp Bash control script"]
+        n18["/usr/sbin/icwmpd
+TR-069 client daemon"]
+        n19["/usr/sbin/icwmp_stund
+STUN daemon"]
+        n20["/etc/config/cwmp ACS URL configuration"]
+        n21["acs.adamo.es
+ISP ACS server"]
+  end
+ subgraph s6["Authentication Files"]
+        n23["/etc/shadow
+Password hashes Source of truth"]
+        n24["/etc/passwd User database"]
+        n25["/etc/config/users Role definitions"]
+  end
+ subgraph s7["Access Interfaces"]
+        n26["SSH server Port 22666
+root user only"]
+        n27["JUCI web interface
+admin/support/user"]
+  end
+    n1 --> n2 & n3
+    n2 --> n4 & n5 & n6 & n9
+    n4 --> n7 & n8
+    n9 --> n10 & n11 & n12
+    n13 --> n14
+    n14 --> n15
+    n15 --> n17 & n22
+    n7 --> n13
+    n8 --> n13
+    n10 --> n13
+    n17 --> n18 & n19
+    n19 --> n21
+    n18 --> n20 & n21
+    n22 --> n23 & n24 & n25
+    n23 --> n26 & n27
+    n24 L_n24_n26_0@--> n26 & n27
+
+
+    L_n24_n26_0@{ animation: none }
+```
 
 | Component | File Path | Purpose | Modified in Project |
 | :--- | :--- | :--- | :--- |
