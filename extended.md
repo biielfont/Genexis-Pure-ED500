@@ -144,11 +144,82 @@ System Components: File Paths and Modification Status
 
 This diagram shows how user access progresses from initial ISP-locked state to full user control, mapping each stage to specific code entities:
 
-
+```mermaid
+---
+config:
+  theme: redux
+---
+flowchart TB
+    C["ISP-Locked Router
+Running stock firmware
+icwmpd connected to
+acs.adamo.es"] --> n1["Connect UART hardware
+115200 baud 8N1
+TX/RX/GND pins"]
+    n1 --> n2["Interrupt U-Boot boot
+Press key at boot prompt"]
+    n2 --> n3["setenv bootargs command
+Add: init=/bin/sh
+Remove default init"]
+    n3 --> n4["boot command
+Kernel loads to /bin/sh
+No full init, no overlayfs"]
+    n4 --> n5["mount -t proc proc /proc
+Enable process visibility"]
+    n5 --> n6["mount -o remount,rw /"]
+    n6 --> n7["Make /rom writable
+temporarily"]
+    n7 --> n8["Edit /etc/preinit file
+Add at end: exec /bin/sh
+This runs after overlayfs
+mounts"]
+    n8 --> n9["sync command
+Flush writes to NAND flash"]
+    n9 --> n10["setenv bootargs command
+Restore original value:
+console=ttyLTQ0,115200
+root=ubi0:rootfs_0"]
+    n10 --> n11["saveenv command
+Persist bootargs to
+env1/env2"]
+    n11 --> n12["reboot command
+Normal boot sequence
+starts"]
+    n12 --> n13["/sbin/init runs <br>/etc/init.d/passwords
+executes
+overlayfs mounts to /"]
+    n13 --> n14["/etc/preinit exec /bin/sh
+Root shell with full system
+All services running"]
+    n14 --> n15["passwd root command
+Updates /etc/shadow
+Persists in /overlay"] & n16["passwd admin command
+Updates /etc/shadow
+Enables JUCI access"] & n17["passwd support command
+Changes backdoor
+password"]
+    n16 --> n18["mv /usr/sbin/icwmp
+icwmp.bak
+mv /usr/sbin/icwmpd
+icwmpd.bak
+mv /usr/sbin/icwmp_stund
+icwmp_stund.bak"]
+    n15 --> n18
+    n17 --> n18
+    n18 --> n19["./cleanscript_persistant.sh
+Removes TR-069 from
+rootfs_0
+Removes TR-069 from
+rootfs_1"]
+    n19 --> n20["User Control Achieved
+SSH port 22666 as root
+JUCI web as admin"]
+    n20 --> n21["No ISP backdoor"]
+```
 
 **Access Control Flow: From ISP Lock to User Control**
 
-This flow demonstrates the complete process of gaining control over the device, with each node referencing specific files, commands, or system components that must be modified or executed.
+The flow demonstrates the complete process of gaining control over the device, with each node referencing specific files, commands, or system components that must be modified or executed.
 
 ---
 
