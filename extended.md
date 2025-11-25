@@ -34,16 +34,6 @@ The approach documented here achieves complete user control without requiring fi
 
 The following diagram illustrates the major system components and their relationships within the Genexis Pure ED500 device:
 
-**System Architecture: Major Components and File Paths**
-
-The system operates in distinct layers from **hardware** through to **user interfaces**, with ISP control mechanisms integrated throughout the boot and service layers.
-
----
-
-## Critical System Components
-
-The following diagram maps physical hardware components to specific files, binaries, and configuration entries in the codebase:
-
 ```mermaid
 flowchart TB
  subgraph s1["Hardware Layer"]
@@ -119,6 +109,16 @@ admin/support/user"]
 
     L_n24_n26_0@{ animation: none }
 ```
+
+**System Architecture: Major Components and File Paths**
+
+The system operates in distinct layers from **hardware** through to **user interfaces**, with ISP control mechanisms integrated throughout the boot and service layers.
+
+---
+
+## Critical System Components
+
+System Components: File Paths and Modification Status
 
 | Component | File Path | Purpose | Modified in Project |
 | :--- | :--- | :--- | :--- |
