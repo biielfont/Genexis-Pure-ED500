@@ -6,6 +6,12 @@ Para acceder a una explicación más completa y detallada, consulta la guía en 
 
 [![Explorar en DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/biielfont/Genexis-Pure-ED500)  
 
+**DeepWiki** tiene como objetivo es facilitar la comprensión de proyectos complejos mediante:
+
+- **Indexación automática del código:** analiza la estructura y dependencias para mostrar una visión clara del proyecto.  
+- **Documentación navegable:** genera páginas con descripciones de módulos, diagramas y ejemplos prácticos.  
+- **Asistente de consultas:** permite hacer preguntas en lenguaje natural sobre el repositorio y obtener respuestas contextualizadas.  
+
 O bien revisa directamente el archivo [**extended.md**](./extended.md) para información adicional y ejemplos prácticos.
 
 Este proyecto documenta el proceso de obtención de acceso root completo en el router Genexis Pure ED500 (Adamo), basado en OpenWrt modificado por Iopsys con interfaz JUCI. 
