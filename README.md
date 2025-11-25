@@ -136,5 +136,89 @@ Este acceso representa una vulnerabilidad, ya que en caso de que algún disposit
 
 El servicio SSH se encuentra habilitado por defecto en el puerto **22666**. El único acceso válido corresponde al usuario **root**. Los usuarios impresos en la etiqueta del dispositivo no disponen de directorio *home* ni de una *shell* asignada, lo que impide su utilización para sesiones SSH.
 
+```mermaid
+flowchart TB
+    %% Documentation and Scripts
+    subgraph "Documentation & Resources"
+        DOC1["README.md"]:::doc
+        DOC2["extended.md"]:::doc
+        DOC3["recovery.md"]:::doc
+        DOC4["backdoor-removal.md"]:::doc
+        FIRMWARES["firmwares/"]:::storage
+        ISPFW["firmwares/Others ISP (more ISP customization)/"]:::storage
+        STOCKFW["firmwares/PURE-ED500-GNX-*.y3"]:::storage
+        ADGUARD["firmwares/adguardhome_0.107.69-2_mips_24kc_nomips16.ipk"]:::storage
+        SCRIPT["scripts/cleanscript_persistant.sh"]:::hack
+    end
 
+    %% Hardware & Bootloader
+    subgraph "Boot Stages" 
+        HW["Hardware UART Interface"]:::boot
+        UBOOT["U-Boot Bootloader"]:::boot
+        KERNEL["Kernel"]:::boot
+    end
+
+    %% Filesystem Layers
+    subgraph "Filesystem Layers"
+        ROM["/rom (Factory, read-only)"]:::storage
+        OVERLAY["/ (OverlayFS Active, read-write)"]:::storage
+    end
+
+    %% Preinit Hook
+    subgraph "Preinit Stage"
+        PREINIT["/etc/preinit (exec /bin/sh hook)"]:::hack
+        SHELL["Root Shell Injected"]:::hack
+    end
+
+    %% Init and Services
+    subgraph "Init & Services"
+        PASS["/etc/init.d/passwords (Credential Sync)"]:::service
+        JUCI["JUCI Web UI"]:::service
+        SSHD["SSH Daemon (port 22666)"]:::service
+        TR069["TR-069 Daemons\n(icwmp, icwmpd, icwmp_stund)"]:::service
+        ACS["External ACS Server\n(acs.adamo.es)"]:::external
+    end
+
+    %% Connections
+    HW -->|"UART interrupt"| UBOOT
+    UBOOT -->|"Load Kernel"| KERNEL
+    KERNEL -->|"Mount"| ROM
+    KERNEL -->|"Mount"| OVERLAY
+    OVERLAY -->|"Execute"| PREINIT
+    PREINIT -->|"Spawn"| SHELL
+    SHELL -->|"Modify FS"| OVERLAY
+    OVERLAY -->|"Run Init Scripts"| PASS
+    PASS -->|"Sync Credentials"| OVERLAY
+    OVERLAY -->|"Start Services"| JUCI
+    OVERLAY -->|"Start Services"| SSHD
+    OVERLAY -->|"Start Services"| TR069
+    TR069 -->|"Connect to"| ACS
+
+    %% Scripts & firmware reference in workflow
+    SHELL -->|"Uses scripts"| SCRIPT
+    UBOOT -->|"References images"| STOCKFW
+    UBOOT -->|"Instructions"| ISPFW
+    UBOOT -->|"UART docs"| ADGUARD
+
+    %% Click events
+    click DOC1 "https://github.com/biielfont/genexis-pure-ed500/blob/main/README.md"
+    click DOC2 "https://github.com/biielfont/genexis-pure-ed500/blob/main/extended.md"
+    click DOC3 "https://github.com/biielfont/genexis-pure-ed500/blob/main/recovery.md"
+    click DOC4 "https://github.com/biielfont/genexis-pure-ed500/blob/main/backdoor-removal.md"
+    click FIRMWARES "https://github.com/biielfont/genexis-pure-ed500/tree/main/firmwares/"
+    click ISPFW "https://github.com/biielfont/genexis-pure-ed500/tree/main/firmwares/Others ISP (more ISP customization)/"
+    click STOCKFW "https://github.com/biielfont/genexis-pure-ed500/blob/main/firmwares/PURE-ED500-GNX-*.y3"
+    click ADGUARD "https://github.com/biielfont/genexis-pure-ed500/blob/main/firmwares/adguardhome_0.107.69-2_mips_24kc_nomips16.ipk"
+    click SCRIPT "https://github.com/biielfont/genexis-pure-ed500/blob/main/scripts/cleanscript_persistant.sh"
+    click UBOOT "https://github.com/biielfont/genexis-pure-ed500/blob/main/uboot/uboot.img"
+    click HW "https://github.com/biielfont/genexis-pure-ed500/blob/main/uboot/u-boot.uart.txt"
+
+    %% Styles
+    classDef boot fill:#d0e7ff,stroke:#1f78b4
+    classDef storage fill:#e6ffe6,stroke:#33a02c
+    classDef service fill:#ffe0b3,stroke:#ff7f00
+    classDef hack fill:#ffd6d6,stroke:#e31a1c
+    classDef doc fill:#f0e6ff,stroke:#6a3d9a
+    classDef external fill:#f5f5f5,stroke:#636363,stroke-dasharray: 5 5
+```
 
