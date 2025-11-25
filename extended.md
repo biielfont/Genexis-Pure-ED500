@@ -237,59 +237,38 @@ The password synchronization system operates through a chain of files:
 
 ```mermaid
 flowchart LR
-    %% Subgraph: User Commands
-    subgraph UC["User Commands"]
+ subgraph UC["User Commands"]
         A1["JUCI password change<br>Calls passwd internally"]
         A2["passwd command<br>Updates shadow directly"]
-        A1 -- Calls --> A2
-    end
-
-    %% Subgraph: Factory Defaults
-    subgraph FD["Factory Defaults"]
+  end
+ subgraph FD["Factory Defaults"]
         D1["/rom/etc/shadow<br>Default password hashes"]
-    end
-
-    %% Subgraph: Boot Time
-    subgraph BT["Boot Time"]
+  end
+ subgraph BT["Boot Time"]
         B1["/etc/init.d/passwords<br>Init script"]
-    end
-
-    %% Subgraph: Active System
-    subgraph AS["Active System"]
+  end
+ subgraph AS["Active System"]
         S1["/etc/shadow<br>Password hashes<br>SOURCE OF TRUTH"]
         S2["/etc/passwd<br>User accounts"]
-    end
-
-    %% Subgraph: UCI Configuration
-    subgraph UCI["UCI Configuration"]
+  end
+ subgraph UCI["UCI Configuration"]
         C1["/etc/config/users<br>User role definitions"]
         C2["/etc/config/passwords<br>Temporary hash storage"]
-    end
-
-    %% Subgraph: Authentication
-    subgraph AUTH["Authentication"]
+  end
+ subgraph AUTH["Authentication"]
         T1["SSH login<br>Port 22666<br>Checks shadow"]
         T2["JUCI login<br>Checks shadow"]
-    end
-
-    %% Edges between subgraphs, with labels
-    A2 -- "Direct update" --> S1
-    D1 -- "IF missing" --> B1
-    B1 -- "Initializes missing" --> S1
-    B1 -- "Reads roles" --> C1
-    B1 -- "uci delete after sync" --> C2
-    B1 -- "Processed" --> C2
-
-    S1 -- "Validates" --> T1
-    S1 -- "Validates" --> T2
-    S2 -- "User info" --> T2
-    S2 -- "User info" --> T1
-
-    %% UCI Configuration feeds to boot script
-    C1 -. "Used at boot" .-> B1
-
-    %% Active system: shadow and passwd kept in sync at boot
-    B1 -- "Initializes missing" --> S2
+  end
+    A1 -- Calls --> A2
+    A2 -- Direct update --> S1
+    D1 -- IF missing --> B1
+    B1 -- Initializes missing --> S1
+    B1 -- Reads roles --> C1
+    B1 -- uci delete after sync --> C2
+    B1 -- Processed --> C2
+    S1 -- Validates --> T1 & T2
+    S2 -- User info --> T2 & T1
+    C1 -. Used at boot .-> B1
 ```
 
 The critical behavior: `/etc/init.d/passwords` executes during boot, syncs UCI passwords to `/etc/shadow`, then runs `uci delete passwords.admin.password` to prevent persistent overwriting. This means **password changes made via `passwd` command persist across reboots.**
